@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A0E1C">
+<title>Compravendita — Registro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg: #0A0E1C;
+    --surface: #131A2E;
+    --surface-2: #1B2340;
+    --ink: #F1F4FB;
+    --ink-soft: #8792AC;
+    --ink-faint: #576082;
+    --border: #232C4C;
+    --primary: #4C8DFF;
+    --primary-2: #22D3EE;
+    --primary-soft: rgba(76,141,255,0.16);
+    --emerald: #34D399;
+    --emerald-soft: rgba(52,211,153,0.16);
+    --amber: #FBBF24;
+    --amber-soft: rgba(251,191,36,0.16);
+    --wine: #F472B6;
+    --wine-soft: rgba(244,114,182,0.16);
+    --danger: #FB7185;
+    --danger-soft: rgba(251,113,133,0.18);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 14px 34px -8px rgba(0,0,0,0.6);
+    --radius-lg: 20px;
+    --radius-md: 14px;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body{ margin:0; padding:0; background: var(--bg); color: var(--ink); font-family:'Inter',sans-serif; height:100%; }
+  #app{ max-width: 640px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; padding-bottom:96px; }
+
+  /* ---------- Header ---------- */
+  header.top{
+    position: sticky; top:0; z-index:10;
+    background: linear-gradient(180deg, var(--bg) 70%, rgba(10,14,28,0));
+    backdrop-filter: blur(6px);
+    padding: 20px 18px 6px;
+  }
+  .brand{ display:flex; align-items:center; gap:11px; }
+  .brand .logo{
+    width:38px; height:38px; border-radius:12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 6px 14px -4px rgba(76,141,255,0.55);
+  }
+  .brand h1{ font-family:'Plus Jakarta Sans',sans-serif; font-size:19px; font-weight:800; margin:0; letter-spacing:-0.02em; }
+  .brand .sub{ font-size:12px; color: var(--ink-soft); font-weight:500; margin-top:1px; }
+  .section-title{
+    font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:12px; color: var(--ink-soft);
+    text-transform:uppercase; letter-spacing:0.06em; margin: 18px 0 8px;
+  }
+  .page-title{ font-family:'Plus Jakarta Sans',sans-serif; font-size:22px; font-weight:800; margin: 14px 0 2px; letter-spacing:-0.02em; }
+
+  main{ flex:1; padding: 6px 16px 8px; }
+
+  /* ---------- Cards & stats ---------- */
+  .card{
+    background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border); padding: 16px 18px; margin-bottom: 14px;
+  }
+  .stat-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat{
+    background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border); padding: 16px 16px;
+  }
+  .stat.wide{ grid-column: 1 / -1; }
+  .stat .label{ font-size:12px; color: var(--ink-soft); font-weight:600; }
+  .stat .value{ font-family:'JetBrains Mono',monospace; font-size:23px; font-weight:700; margin-top:6px; letter-spacing:-0.02em; }
+  .stat.emerald .value{ color: var(--emerald); }
+  .stat.amber .value{ color: var(--amber); }
+  .stat.primary .value{ color: var(--primary); }
+
+  select, input{
+    font-family:'Inter',sans-serif; font-size:15px; border:1px solid var(--border);
+    background: var(--surface); border-radius: 12px; padding: 10px 12px; color: var(--ink);
+  }
+  select:focus, input:focus{ outline:2px solid var(--primary); outline-offset:1px; }
+  input::placeholder{ color: var(--ink-faint); }
+
+  .row{ display:flex; align-items:center; justify-content: space-between; gap:10px; }
+
+  .search-wrap{ position:relative; margin-bottom:12px; }
+  .search-wrap svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); color: var(--ink-faint); }
+  .search-wrap input{ width:100%; padding-left:38px; border-radius: 14px; }
+  .search-wrap .clear{ position:absolute; right:8px; top:50%; transform:translateY(-50%); background:var(--border); color:var(--ink-soft); border:none; width:22px; height:22px; border-radius:50%; font-size:13px; display:flex; align-items:center; justify-content:center; }
+
+  /* trend chart */
+  .legend{ display:flex; gap:16px; font-size:12px; color: var(--ink-soft); margin-top:8px; font-weight:500; }
+  .legend .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
+  .trend-labels{ display:flex; justify-content:space-between; margin-top:2px; }
+  .trend-labels span{ font-size:10px; color: var(--ink-faint); flex:1; text-align:center; font-weight:500; }
+
+  /* monthly results list */
+  .month-row{
+    display:flex; align-items:center; justify-content:space-between; padding: 12px 2px;
+    border-bottom: 1px solid var(--border); gap:10px;
+  }
+  .month-row:last-child{ border-bottom:none; }
+  .month-name-wrap{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .month-row .month-name{ font-weight:700; font-size:13.5px; width: 68px; flex-shrink:0; }
+  .month-row.empty .month-name{ color: var(--ink-faint); font-weight:600; }
+  .pill{ font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.03em; padding:3px 8px; border-radius:20px; }
+  .pill.pos{ background: var(--emerald-soft); color: var(--emerald); }
+  .pill.neg{ background: var(--danger-soft); color: var(--danger); }
+  .month-stats{ display:flex; gap:16px; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; flex:1; justify-content:flex-end; }
+  .month-stats span{ min-width:76px; text-align:right; }
+  .month-stats span.pos{ color: var(--emerald); }
+  .month-stats span.neg{ color: var(--danger); }
+  .month-row.empty .month-stats span{ color: var(--ink-faint); font-weight:500; }
+  .col-legend{ display:flex; gap:16px; font-size:10.5px; color: var(--ink-faint); justify-content:flex-end; padding: 0 2px 8px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; }
+  .col-legend span{ min-width:76px; text-align:right; }
+
+  /* ---------- Bottom nav ---------- */
+  nav.tabbar{
+    position: fixed; bottom:14px; left:0; right:0; z-index:20; display:flex; justify-content:center; padding: 0 16px;
+  }
+  nav.tabbar .inner{
+    display:flex; max-width:420px; width:100%; background: rgba(19,26,46,0.85); backdrop-filter: blur(14px);
+    border-radius: 22px; box-shadow: var(--shadow-md); border:1px solid rgba(35,44,76,0.9); padding:6px;
+  }
+  nav.tabbar button{
+    flex:1; background:none; border:none; padding:9px 4px; display:flex; flex-direction:column;
+    align-items:center; gap:3px; color: var(--ink-faint); font-family:'Inter'; font-size:10.5px; font-weight:700;
+    border-radius:16px; transition: color .15s ease;
+  }
+  nav.tabbar button.active{ color: var(--primary); background: var(--primary-soft); }
+  nav.tabbar button svg{ width:20px; height:20px; }
+
+  /* ---------- Filters ---------- */
+  .filters{ display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px; }
+  .filters button{
+    white-space:nowrap; font-size:12.5px; font-weight:700; padding:8px 14px; border-radius:20px;
+    border:1px solid var(--border); background: var(--surface); color: var(--ink-soft); transition: all .15s ease;
+  }
+  .filters button.active{ background: var(--primary); color:#fff; border-color: var(--primary); }
+
+  /* ---------- List items ---------- */
+  .item{
+    background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border); padding: 14px 16px; margin-bottom: 10px; animation: fadeUp .25s ease;
+  }
+  @keyframes fadeUp{ from{ opacity:0; transform: translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  .item .top-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .item .name{ font-weight:700; font-size:15px; font-family:'Plus Jakarta Sans',sans-serif; }
+  .tag{ font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; padding:4px 9px; border-radius:20px; }
+  .tag.fotocamere{ background: var(--primary-soft); color: var(--primary); }
+  .tag.altro{ background: var(--wine-soft); color: var(--wine); }
+  .tag.venduto{ background: var(--emerald-soft); color: var(--emerald); }
+  .tag.instock{ background: var(--surface-2); color: var(--ink-soft); }
+  .item .meta{ font-size:12.5px; color: var(--ink-soft); margin-top:8px; line-height:1.7; }
+  .item .profit{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px; margin-top:10px; color: var(--emerald); }
+  .item .profit.negative{ color: var(--danger); }
+  .item .actions{ display:flex; gap:8px; margin-top:12px; }
+  .item .actions button{ font-size:12px; padding:7px 12px; }
+
+  button.btn{
+    font-family:'Inter'; font-weight:700; font-size:13.5px; border-radius:12px; border:1px solid var(--border);
+    background: var(--surface); color: var(--ink); padding: 9px 14px; transition: transform .1s ease;
+  }
+  button.btn:active{ transform: scale(0.96); }
+  button.btn.primary{ background: linear-gradient(135deg, var(--primary), var(--primary-2)); color:#fff; border:none; box-shadow: 0 6px 16px -4px rgba(76,141,255,0.5); }
+  button.btn.ghost{ background:none; border:none; color: var(--ink-soft); }
+  button.btn.danger{ color: var(--danger); }
+
+  .fab{
+    position: fixed; right: 20px; bottom: 96px; z-index: 25;
+    width:56px; height:56px; border-radius:50%; border:none; color:#fff;
+    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    font-size: 27px; line-height:1; box-shadow: 0 10px 24px -6px rgba(76,141,255,0.6);
+    display:flex; align-items:center; justify-content:center; transition: transform .12s ease;
+  }
+  .fab:active{ transform: scale(0.92); }
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background: rgba(3,5,12,0.6); backdrop-filter: blur(3px); z-index:30;
+    display:flex; align-items:flex-end; justify-content:center; animation: fadeIn .18s ease;
+  }
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  .modal{
+    background: var(--surface); border:1px solid var(--border); border-bottom:none; width:100%; max-width:640px; border-radius: 26px 26px 0 0;
+    padding: 20px 20px calc(26px + env(safe-area-inset-bottom)); max-height: 88vh; overflow-y:auto;
+    animation: slideUp .22s cubic-bezier(.2,.8,.3,1);
+  }
+  @keyframes slideUp{ from{ transform: translateY(30px); opacity:0.4; } to{ transform:translateY(0); opacity:1;} }
+  .modal h2{ font-family:'Plus Jakarta Sans',sans-serif; font-size:19px; font-weight:800; margin: 6px 0 16px; }
+  .field{ margin-bottom: 13px; }
+  .field label{ display:block; font-size:12px; font-weight:700; color: var(--ink-soft); margin-bottom:6px; }
+  .field input, .field select{ width:100%; }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field{ flex:1; }
+  .modal-actions{ display:flex; gap:10px; margin-top: 18px; }
+  .modal-actions button{ flex:1; padding:12px; }
+  .segmented{ display:flex; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface); }
+  .segmented button{ flex:1; padding:10px; font-size:13px; font-weight:700; background:none; border:none; color:var(--ink-soft); }
+  .segmented button.active{ background: linear-gradient(135deg, var(--primary), var(--primary-2)); color:#fff; }
+
+  .empty{ text-align:center; padding: 50px 20px; color: var(--ink-soft); }
+  .empty .big{ font-size:36px; margin-bottom:10px; }
+  .hint{ font-size:12px; color: var(--ink-soft); margin-top:2px; }
+  .banner{ font-size:12px; color: var(--primary); background: var(--primary-soft); border-radius:14px; padding:12px 14px; margin-bottom:14px; font-weight:500; }
+  .toast{
+    position: fixed; left:50%; bottom: 96px; transform: translateX(-50%) translateY(20px);
+    background: var(--surface-2); border:1px solid var(--border); color: var(--ink); font-size:13px; font-weight:600; padding:11px 18px; border-radius:30px;
+    box-shadow: var(--shadow-md); opacity:0; pointer-events:none; transition: all .25s ease; z-index:60; max-width: 86%; text-align:center;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+  .confirm-icon{
+    width:48px; height:48px; border-radius:50%; background:var(--danger-soft); color:var(--danger);
+    display:flex; align-items:center; justify-content:center; margin-bottom:12px;
+  }
+  .import-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+    background: var(--surface); border:1.5px dashed rgba(76,141,255,0.45); border-radius:14px; padding:12px; margin-bottom:12px;
+    font-family:'Inter'; font-weight:700; font-size:13.5px; color: var(--primary);
+  }
+  .import-summary{ background: var(--primary-soft); border-radius:14px; padding:14px; margin-bottom:14px; }
+  .import-summary .line{ display:flex; justify-content:space-between; font-size:13.5px; padding:4px 0; }
+  .import-summary .line b{ font-family:'JetBrains Mono',monospace; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function(){
+  const MESI = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  const MESI_FULL = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  const TIPI_SPESA = ['Imballaggi','Trasporti','Accessori extra','Riparazioni','Altro'];
+
+  let state = {
+    tab: 'dashboard',
+    year: new Date().getFullYear(),
+    transactions: [],
+    expenses: [],
+    loaded: false,
+    txFilter: 'tutte',
+    txSearch: '',
+    modal: null,
+    importPreview: null, // {transactions, expenses, year}
+    backupPreview: null,
+    chiusure: {}, // { "2026-0": 1125.91, ... } chiusure mensili inserite manualmente dall'utente
+    syncUrl: '',
+    syncStatus: 'idle', // idle | syncing | ok | error
+    syncLast: null
+  };
+
+  const fmtEUR = n => new Intl.NumberFormat('it-IT', {style:'currency', currency:'EUR'}).format(n || 0);
+  const fmtDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit', year:'numeric'}) : '—';
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+  function showToast(msg){
+    let el = document.getElementById('appToast');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'appToast';
+      el.className = 'toast';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    requestAnimationFrame(()=> el.classList.add('show'));
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(()=>{ el.classList.remove('show'); }, 2800);
+  }
+
+  const LS_TX = 'compravendita_transactions';
+  const LS_EXP = 'compravendita_expenses';
+  const LS_CLOS = 'compravendita_chiusure';
+  const LS_SYNC = 'compravendita_sync_url';
+
+  function normalizeSyncUrl(u){
+    if(!u) return '';
+    u = u.trim().replace(/\/+$/,'');
+    return u;
+  }
+  function syncEndpoint(){
+    const u = state.syncUrl;
+    return u ? u + '/registro.json' : null;
+  }
+
+  async function loadAll(){
+    try{ const t = localStorage.getItem(LS_TX); state.transactions = t ? JSON.parse(t) : []; }
+    catch(e){ state.transactions = []; }
+    try{ const e = localStorage.getItem(LS_EXP); state.expenses = e ? JSON.parse(e) : []; }
+    catch(e){ state.expenses = []; }
+    try{ const c = localStorage.getItem(LS_CLOS); state.chiusure = c ? JSON.parse(c) : {}; }
+    catch(e){ state.chiusure = {}; }
+    try{ state.syncUrl = normalizeSyncUrl(localStorage.getItem(LS_SYNC) || ''); }
+    catch(e){ state.syncUrl = ''; }
+    state.loaded = true;
+    render();
+    if(state.syncUrl) await syncPull(true);
+  }
+  async function saveTransactions(){
+    try{ localStorage.setItem(LS_TX, JSON.stringify(state.transactions)); }
+    catch(e){ console.error('Errore salvataggio transazioni', e); showToast('Errore nel salvataggio dei dati su questo dispositivo.'); }
+    syncPush();
+  }
+  async function saveExpenses(){
+    try{ localStorage.setItem(LS_EXP, JSON.stringify(state.expenses)); }
+    catch(e){ console.error('Errore salvataggio spese', e); showToast('Errore nel salvataggio dei dati su questo dispositivo.'); }
+    syncPush();
+  }
+  async function saveChiusure(){
+    try{ localStorage.setItem(LS_CLOS, JSON.stringify(state.chiusure)); }
+    catch(e){ console.error('Errore salvataggio chiusure', e); showToast('Errore nel salvataggio dei dati su questo dispositivo.'); }
+    syncPush();
+  }
+
+  // ---------- Sincronizzazione cloud (Firebase Realtime Database) ----------
+  async function syncPull(silent){
+    const endpoint = syncEndpoint();
+    if(!endpoint) return false;
+    state.syncStatus = 'syncing';
+    try{
+      const res = await fetch(endpoint);
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if(data){
+        state.transactions = Array.isArray(data.transactions) ? data.transactions : [];
+        state.expenses = Array.isArray(data.expenses) ? data.expenses : [];
+        state.chiusure = data.chiusure && typeof data.chiusure === 'object' ? data.chiusure : {};
+        try{
+          localStorage.setItem(LS_TX, JSON.stringify(state.transactions));
+          localStorage.setItem(LS_EXP, JSON.stringify(state.expenses));
+          localStorage.setItem(LS_CLOS, JSON.stringify(state.chiusure));
+        }catch(e){}
+      }
+      state.syncStatus = 'ok';
+      state.syncLast = new Date();
+      if(!silent) showToast('Dati aggiornati dal cloud.');
+      render();
+      return true;
+    }catch(err){
+      console.error('Errore sincronizzazione (pull)', err);
+      state.syncStatus = 'error';
+      if(!silent) showToast("Impossibile raggiungere il database. Controlla la connessione o l'indirizzo inserito.");
+      render();
+      return false;
+    }
+  }
+  async function syncPush(){
+    const endpoint = syncEndpoint();
+    if(!endpoint) return false;
+    const payload = { transactions: state.transactions, expenses: state.expenses, chiusure: state.chiusure, updatedAt: new Date().toISOString() };
+    try{
+      const res = await fetch(endpoint, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      state.syncStatus = 'ok';
+      state.syncLast = new Date();
+      return true;
+    }catch(err){
+      console.error('Errore sincronizzazione (push)', err);
+      state.syncStatus = 'error';
+      showToast('Non sono riuscito a sincronizzare con il cloud. I dati restano salvati su questo dispositivo.');
+      return false;
+    }
+  }
+
+  // ---------- Backup: esporta / importa ----------
+  function exportBackup(){
+    const payload = { transactions: state.transactions, expenses: state.expenses, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,10);
+    a.href = url; a.download = `backup-compravendita-${stamp}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Backup esportato.');
+  }
+  function handleBackupFile(file){
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{
+        const payload = JSON.parse(e.target.result);
+        if(!payload || !Array.isArray(payload.transactions) || !Array.isArray(payload.expenses)){
+          showToast('Questo file non sembra un backup valido.');
+          return;
+        }
+        state.backupPreview = payload;
+        state.modal = { type:'backup-confirm' };
+        render();
+      }catch(err){
+        console.error(err);
+        showToast('Non sono riuscito a leggere questo file di backup.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ---------- Import da Excel ----------
+  const MESI_MATCH = {GENNAIO:0,FEBBRAIO:1,MARZO:2,APRILE:3,MAGGIO:4,GIUGNO:5,LUGLIO:6,AGOSTO:7,SETTEMBRE:8,OTTOBRE:9,NOVEMBRE:10,DICEMBRE:11};
+  const SPESA_LABELS = {
+    'SPESE IMBALLAGGI':'Imballaggi', 'IMBALLAGGI':'Imballaggi',
+    'TRASPORTI':'Trasporti', 'SPESE TRASPORTI':'Trasporti',
+    'ACCESSORI EXTRA':'Accessori extra',
+    'RIPARAZIONI':'Riparazioni', 'SPESE RIPARAZIONI':'Riparazioni'
+  };
+  function excelDateToISO(v){
+    if(v == null || v === '') return null;
+    if(v instanceof Date && !isNaN(v)) {
+      return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+String(v.getDate()).padStart(2,'0');
+    }
+    const d = new Date(v);
+    if(!isNaN(d)) return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    return null;
+  }
+  function parseWorkbook(wb){
+    const outTx = [];
+    const outExp = [];
+    const yearCounts = {};
+
+    wb.SheetNames.forEach(sheetName=>{
+      const key = sheetName.trim().toUpperCase();
+      const isMonth = key in MESI_MATCH;
+      const isRimanenze = key.includes('RIMANEN');
+      if(!isMonth && !isRimanenze) return; // salta fogli come "ANALISI"
+      const monthIdx = isMonth ? MESI_MATCH[key] : 0;
+
+      const sheet = wb.Sheets[sheetName];
+      const aoa = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:null, cellDates:true});
+      const sheetTx = [];
+      const sheetExpRaw = [];
+
+      for(let i=2; i<aoa.length; i++){
+        const r = aoa[i] || [];
+        // ---- Colonna FOTOCAMERE (A-I) ----
+        const denomA = r[0];
+        if(denomA && String(denomA).trim()){
+          const dataAcq = excelDateToISO(r[3]);
+          const dataVen = excelDateToISO(r[6]);
+          const prezzoVenRaw = r[5];
+          const venduto = !!dataVen && prezzoVenRaw != null && prezzoVenRaw !== '';
+          sheetTx.push({
+            id: uid(), categoria:'Fotocamere',
+            denominazione: String(denomA).trim(),
+            fonteAcquisto: r[1] ? String(r[1]).trim() : '',
+            prezzoAcquisto: Number(r[2])||0,
+            dataAcquisto: dataAcq,
+            fonteVendita: r[4] ? String(r[4]).trim() : '',
+            prezzoVendita: venduto ? Number(prezzoVenRaw) : null,
+            dataVendita: venduto ? dataVen : null,
+            rimanenza: isRimanenze
+          });
+          if(dataAcq) yearCounts[dataAcq.slice(0,4)] = (yearCounts[dataAcq.slice(0,4)]||0)+1;
+        }
+        // ---- Colonna L (ALTRO o etichette riepilogo/spese) ----
+        const colL = r[11];
+        if(colL && String(colL).trim()){
+          const upper = String(colL).trim().toUpperCase();
+          if(upper.startsWith('TOTALE ACQUISTI') || upper.startsWith('FATTURATO') || upper.startsWith('UTILE')){
+            // valori ricalcolati automaticamente dall'app, si ignorano
+          } else if(SPESA_LABELS[upper]){
+            const importo = Number(r[12]);
+            if(importo && importo > 0){
+              sheetExpRaw.push({ tipo: SPESA_LABELS[upper], importo });
+            }
+          } else {
+            const dataAcq = excelDateToISO(r[14]);
+            const dataVen = excelDateToISO(r[17]);
+            const prezzoVenRaw = r[16];
+            const venduto = !!dataVen && prezzoVenRaw != null && prezzoVenRaw !== '';
+            sheetTx.push({
+              id: uid(), categoria:'Altro',
+              denominazione: String(colL).trim(),
+              fonteAcquisto: r[12] ? String(r[12]).trim() : '',
+              prezzoAcquisto: Number(r[13])||0,
+              dataAcquisto: dataAcq,
+              fonteVendita: r[15] ? String(r[15]).trim() : '',
+              prezzoVendita: venduto ? Number(prezzoVenRaw) : null,
+              dataVendita: venduto ? dataVen : null,
+              rimanenza: isRimanenze
+            });
+            if(dataAcq) yearCounts[dataAcq.slice(0,4)] = (yearCounts[dataAcq.slice(0,4)]||0)+1;
+          }
+        }
+      }
+      outTx.push(...sheetTx);
+      sheetExpRaw.forEach(e=> outExp.push({ ...e, monthIdx, needsYear: isMonth }));
+    });
+
+    let bestYear = new Date().getFullYear();
+    let bestCount = -1;
+    Object.keys(yearCounts).forEach(y=>{ if(yearCounts[y] > bestCount){ bestCount = yearCounts[y]; bestYear = Number(y); } });
+
+    return { transactions: outTx, expensesRaw: outExp, suggestedYear: bestYear };
+  }
+  function finalizeExpenses(expensesRaw, year){
+    return expensesRaw.map(e=>({
+      id: uid(), tipo: e.tipo, importo: e.importo,
+      data: year+'-'+String((e.monthIdx||0)+1).padStart(2,'0')+'-01',
+      descrizione: 'Importato da Excel'
+    }));
+  }
+  function handleFile(file){
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {type:'array', cellDates:true});
+        const parsed = parseWorkbook(wb);
+        state.importPreview = parsed;
+        state.modal = { type:'import-confirm' };
+        render();
+      }catch(err){
+        console.error(err);
+        showToast('Non sono riuscito a leggere questo file. Verifica che sia un .xlsx valido.');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function profitto(t){
+    // Il profitto si riconosce solo quando l'articolo è stato effettivamente venduto.
+    if(t.prezzoVendita == null || t.prezzoVendita === '') return null;
+    const tot = Number(t.prezzoVendita) - Number(t.prezzoAcquisto || 0);
+    return { totale: tot, cadauno: tot / 2 };
+  }
+  function availableYears(){
+    const ys = new Set([new Date().getFullYear()]);
+    state.transactions.forEach(t=>{
+      if(t.dataAcquisto) ys.add(new Date(t.dataAcquisto).getFullYear());
+      if(t.dataVendita) ys.add(new Date(t.dataVendita).getFullYear());
+    });
+    state.expenses.forEach(e=>{ if(e.data) ys.add(new Date(e.data).getFullYear()); });
+    return Array.from(ys).sort((a,b)=>b-a);
+  }
+  function monthlyStats(year){
+    const m = Array.from({length:12}, ()=>({fatturato:0, margineTotale:0, margineDiviso:0, acquisti:0, vendite:0}));
+    state.transactions.forEach(t=>{
+      // Acquisti: usciti di cassa nel mese in cui l'articolo è stato comprato — riducono
+      // subito il margine di quel mese, che sia già stato venduto oppure sia ancora in giacenza.
+      if(t.dataAcquisto){
+        const da = new Date(t.dataAcquisto);
+        if(da.getFullYear() === year){
+          const idx = da.getMonth();
+          const acquisto = Number(t.prezzoAcquisto)||0;
+          m[idx].acquisti += acquisto;
+          m[idx].margineTotale -= acquisto;
+          m[idx].margineDiviso -= acquisto/2;
+        }
+      }
+      // Fatturato: incassato nel mese in cui l'articolo è stato VENDUTO (rimanenze comprese).
+      // L'acquisto è già stato sottratto nel suo mese, quindi qui si aggiunge solo l'incasso pieno.
+      if(t.dataVendita && t.prezzoVendita != null){
+        const dv = new Date(t.dataVendita);
+        if(dv.getFullYear() === year){
+          const idx = dv.getMonth();
+          const vendita = Number(t.prezzoVendita);
+          m[idx].fatturato += vendita;
+          m[idx].margineTotale += vendita;
+          m[idx].margineDiviso += vendita/2;
+          m[idx].vendite += 1;
+        }
+      }
+    });
+    state.expenses.forEach(e=>{
+      if(e.data && new Date(e.data).getFullYear() === year){
+        const idx = new Date(e.data).getMonth();
+        m[idx].margineTotale -= (Number(e.importo)||0);
+        m[idx].margineDiviso -= (Number(e.importo)||0) / 2;
+      }
+    });
+    return m;
+  }
+  function yearTotals(year){
+    const m = monthlyStats(year);
+    return m.reduce((acc,c)=>({
+      fatturato: acc.fatturato + c.fatturato,
+      margineTotale: acc.margineTotale + c.margineTotale,
+      margineDiviso: acc.margineDiviso + c.margineDiviso,
+      acquisti: acc.acquisti + c.acquisti,
+      vendite: acc.vendite + c.vendite
+    }), {fatturato:0, margineTotale:0, margineDiviso:0, acquisti:0, vendite:0});
+  }
+  // Come monthlyStats, ma per i mesi con una chiusura Excel inserita a mano usa quella
+  // (la chiusura è un valore "a testa"; il totale combinato è il doppio).
+  function effectiveMonthly(year){
+    const m = monthlyStats(year);
+    return m.map((c,i)=>{
+      const manuale = state.chiusure[year+'-'+i];
+      if(manuale != null && manuale !== ''){
+        return { ...c, margineDiviso: Number(manuale), margineTotale: Number(manuale)*2, manuale:true };
+      }
+      return { ...c, manuale:false };
+    });
+  }
+  function effectiveYearTotals(year){
+    const m = effectiveMonthly(year);
+    return m.reduce((acc,c)=>({
+      fatturato: acc.fatturato + c.fatturato,
+      margineTotale: acc.margineTotale + c.margineTotale,
+      margineDiviso: acc.margineDiviso + c.margineDiviso,
+      acquisti: acc.acquisti + c.acquisti,
+      vendite: acc.vendite + c.vendite
+    }), {fatturato:0, margineTotale:0, margineDiviso:0, acquisti:0, vendite:0});
+  }
+  function scorteInGiacenza(){
+    return state.transactions.filter(t=>!t.dataVendita || t.prezzoVendita==null);
+  }
+  const PLATFORM_PALETTE = ['#4C8DFF','#22D3EE','#FBBF24','#F472B6','#34D399','#A78BFA','#FB7185','#38BDF8','#FACC15','#FB923C'];
+  function platformBreakdown(dateField, valueField, sourceField, year){
+    const totals = {};
+    state.transactions.forEach(t=>{
+      const d = t[dateField];
+      if(!d || new Date(d).getFullYear() !== year) return;
+      if(dateField==='dataVendita' && (t.prezzoVendita==null)) return;
+      const key = (t[sourceField] && String(t[sourceField]).trim()) ? String(t[sourceField]).trim() : 'Non specificato';
+      totals[key] = (totals[key]||0) + (Number(t[valueField])||0);
+    });
+    const entries = Object.entries(totals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    const total = entries.reduce((s,[,v])=>s+v,0);
+    return entries.map(([label,value],i)=>({
+      label, value, pct: total ? (value/total*100) : 0, color: PLATFORM_PALETTE[i % PLATFORM_PALETTE.length]
+    }));
+  }
+  function donutCardHTML(data, emptyMsg){
+    if(!data.length) return `<div class="hint" style="padding:14px 0;">${emptyMsg}</div>`;
+    let acc = 0;
+    const stops = data.map(d=>{ const start=acc; acc+=d.pct; return `${d.color} ${start}% ${acc}%`; }).join(', ');
+    const legend = data.map(d=>`
+      <div class="row" style="padding:5px 0;">
+        <span style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-soft); min-width:0;">
+          <i style="width:8px;height:8px;border-radius:50%;background:${d.color};display:inline-block;flex-shrink:0;"></i>
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(d.label)}</span>
+        </span>
+        <span style="font-family:'JetBrains Mono'; font-weight:700; font-size:12.5px; flex-shrink:0; padding-left:8px;">${d.pct.toFixed(1)}% · ${fmtEUR(d.value)}</span>
+      </div>`).join('');
+    return `
+      <div style="display:flex; justify-content:center; margin: 8px 0 16px;">
+        <div style="width:150px; height:150px; border-radius:50%; background: conic-gradient(${stops}); position:relative;">
+          <div style="position:absolute; inset:28px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono'; font-weight:700; font-size:12px; color:var(--ink-soft); text-align:center; line-height:1.3;">${data.length}<br>piattaforme</div>
+        </div>
+      </div>
+      <div>${legend}</div>`;
+  }
+  function allYearsTotals(){
+    return availableYears().slice().sort((a,b)=>a-b).map(y=>({ year:y, ...effectiveYearTotals(y) }));
+  }
+
+  function lineChartSVG(series, n){
+    const w = 320, h = 120, padX = 8, padY = 14;
+    const allVals = series.flatMap(s=>s.values);
+    const minV = Math.min(0, ...allVals);
+    const maxV = Math.max(1, ...allVals);
+    const range = (maxV - minV) || 1;
+    const stepX = (w - padX*2) / Math.max(1, n-1);
+    const toY = v => h - padY - ((v - minV)/range) * (h - padY*2);
+    const toX = i => padX + i*stepX;
+    const zeroY = toY(0);
+    const lines = series.map(s=>{
+      const pts = s.values.map((v,i)=>`${toX(i)},${toY(v)}`).join(' ');
+      const dots = s.values.map((v,i)=>`<circle cx="${toX(i)}" cy="${toY(v)}" r="2.8" fill="${s.color}"/>`).join('');
+      return `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>${dots}`;
+    }).join('');
+    return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none">
+      <line x1="${padX}" y1="${zeroY}" x2="${w-padX}" y2="${zeroY}" stroke="#232C4C" stroke-width="1"/>
+      ${lines}
+    </svg>`;
+  }
+
+  const ICONS = {
+    dashboard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4v8H3zM10 6h4v14h-4zM17 3h4v17h-4z"/></svg>`,
+    tx: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>`,
+    exp: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>`,
+    search: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>`,
+    upload: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5M4 21h16"/></svg>`,
+    camera: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13.5" r="3.3"/></svg>`
+  };
+
+  function render(){
+    const app = document.getElementById('app');
+    if(!state.loaded){
+      app.innerHTML = `<div class="empty" style="padding-top:140px;"><div class="big">📷</div>Caricamento dati…</div>`;
+      return;
+    }
+    app.innerHTML = `
+      ${renderHeader()}
+      <main>${
+        state.tab === 'dashboard' ? renderDashboard() :
+        state.tab === 'tx' ? renderTransactions() :
+        renderExpenses()
+      }</main>
+      ${renderTabbar()}
+      ${state.tab !== 'dashboard' ? `<button class="fab" id="fabAdd">+</button>` : ''}
+      ${state.modal ? renderModal() : ''}
+    `;
+    attachHandlers();
+  }
+
+  function renderHeader(){
+    const title = state.tab === 'dashboard' ? 'Dashboard' : state.tab === 'tx' ? 'Transazioni' : 'Spese';
+    return `
+    <header class="top">
+      <div class="brand">
+        <div class="logo">${ICONS.camera}</div>
+        <div>
+          <h1>Registro Compravendita</h1>
+          <div class="sub">Gestione acquisti, vendite e margini</div>
+        </div>
+      </div>
+      <div class="page-title">${title}</div>
+    </header>`;
+  }
+
+  function renderTabbar(){
+    return `
+    <nav class="tabbar"><div class="inner">
+      <button data-tab="dashboard" class="${state.tab==='dashboard'?'active':''}">${ICONS.dashboard}Dashboard</button>
+      <button data-tab="tx" class="${state.tab==='tx'?'active':''}">${ICONS.tx}Transazioni</button>
+      <button data-tab="exp" class="${state.tab==='exp'?'active':''}">${ICONS.exp}Spese</button>
+    </div></nav>`;
+  }
+
+  function renderDashboard(){
+    const years = availableYears();
+    const tot = effectiveYearTotals(state.year);
+    const monthly = effectiveMonthly(state.year);
+    const annual = allYearsTotals();
+
+    const monthlyChart = lineChartSVG([
+      { color: '#FBBF24', values: monthly.map(m=>m.fatturato) },
+      { color: '#22D3EE', values: monthly.map(m=>m.margineDiviso) }
+    ], 12);
+    const annualChart = lineChartSVG([
+      { color: '#22D3EE', values: annual.map(a=>a.margineDiviso) }
+    ], Math.max(annual.length,1));
+
+    const monthRows = monthly.map((m,i)=>{
+      const isEmpty = m.fatturato===0 && m.margineTotale===0 && m.vendite===0 && !m.manuale;
+      const posTotale = m.margineTotale >= 0;
+      const posDiviso = m.margineDiviso >= 0;
+      const key = state.year + '-' + i;
+      return `<div class="month-row ${isEmpty?'empty':''}">
+        <div class="month-name-wrap">
+          <div class="month-name">${MESI_FULL[i]}</div>
+          ${m.manuale ? `<span class="pill" style="background:var(--primary-soft); color:var(--primary);">Excel</span>` : (!isEmpty ? `<span class="pill ${posTotale?'pos':'neg'}">${posTotale?'Utile':'Perdita'}</span>` : '')}
+        </div>
+        <div class="month-stats" data-editclosure="${key}" style="cursor:pointer;" title="Tocca per inserire/modificare la chiusura Excel">
+          <span class="${isEmpty?'':(posTotale?'pos':'neg')}">${isEmpty?'—':fmtEUR(m.margineTotale)}</span>
+          <span class="${isEmpty?'':(posDiviso?'pos':'neg')}">${isEmpty?'—':fmtEUR(m.margineDiviso)}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `
+      <div class="row" style="margin-bottom:12px;">
+        <div class="section-title" style="margin:0;">Anno</div>
+        <select id="yearSelect">
+          ${years.map(y=>`<option value="${y}" ${y===state.year?'selected':''}>${y}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat amber">
+          <div class="label">Totale fatturato</div>
+          <div class="value">${fmtEUR(tot.fatturato)}</div>
+        </div>
+        <div class="stat primary">
+          <div class="label">Totale margine</div>
+          <div class="value">${fmtEUR(tot.margineTotale)}</div>
+        </div>
+        <div class="stat emerald wide">
+          <div class="label">Guadagno diviso (a testa)</div>
+          <div class="value">${fmtEUR(tot.margineDiviso)}</div>
+        </div>
+
+        <div class="stat wide">
+          <div class="label">Andamento mensile — ${state.year}</div>
+          ${monthlyChart}
+          <div class="trend-labels">${MESI.map(m=>`<span>${m}</span>`).join('')}</div>
+          <div class="legend">
+            <span><i class="dot" style="background:#FBBF24"></i>Fatturato</span>
+            <span><i class="dot" style="background:#22D3EE"></i>Guadagno diviso</span>
+          </div>
+        </div>
+
+        <div class="stat wide">
+          <div class="label">Andamento annuale</div>
+          ${annual.length > 1 ? annualChart : `<div class="hint" style="padding:16px 0;">Servono almeno due anni di dati per un grafico di andamento.</div>`}
+          ${annual.length > 1 ? `<div class="trend-labels">${annual.map(a=>`<span>${a.year}</span>`).join('')}</div>` : ''}
+          <div class="legend"><span><i class="dot" style="background:#22D3EE"></i>Guadagno diviso per anno</span></div>
+        </div>
+      </div>
+
+      <div class="section-title">Vendite per piattaforma — ${state.year}</div>
+      <div class="card">
+        ${donutCardHTML(platformBreakdown('dataVendita','prezzoVendita','fonteVendita', state.year), 'Nessuna vendita registrata in questo anno.')}
+      </div>
+
+      <div class="section-title">Acquisti per piattaforma — ${state.year}</div>
+      <div class="card">
+        ${donutCardHTML(platformBreakdown('dataAcquisto','prezzoAcquisto','fonteAcquisto', state.year), 'Nessun acquisto registrato in questo anno.')}
+      </div>
+
+      <div class="section-title">Utile e perdite mensili — ${state.year}</div>
+      <div class="card">
+        <div class="hint" style="margin-bottom:8px;">Tocca un mese per inserire a mano la chiusura dal tuo Excel (etichetta "Excel"); senza chiusura manuale viene mostrato il calcolo automatico dell'app.</div>
+        <div class="col-legend"><span>Totale</span><span>A testa</span></div>
+        ${monthRows}
+      </div>
+
+      ${(()=>{ const scorte = scorteInGiacenza(); const valoreAcquisto = scorte.reduce((s,t)=>s+(Number(t.prezzoAcquisto)||0),0);
+        return scorte.length ? `
+      <div class="section-title">Articoli in giacenza</div>
+      <div class="card">
+        <div class="hint" style="margin-bottom:8px;">Comprati ma non ancora venduti (incluse le rimanenze iniziali): il costo d'acquisto ha già ridotto il margine del mese in cui li hai pagati. Quando li venderai, l'incasso pieno entrerà nel margine del mese della vendita.</div>
+        <div class="row" style="padding:4px 0;"><span class="hint">Numero articoli</span><span style="font-family:'JetBrains Mono';font-weight:700;">${scorte.length}</span></div>
+        <div class="row" style="padding:4px 0;"><span class="hint">Valore d'acquisto immobilizzato</span><span style="font-family:'JetBrains Mono';font-weight:700;">${fmtEUR(valoreAcquisto)}</span></div>
+      </div>` : ''; })()}
+
+      <div class="section-title">Sincronizzazione tra dispositivi</div>
+      <div class="card">
+        ${state.syncUrl ? `
+          <div class="row" style="margin-bottom:10px;">
+            <span class="hint">Stato</span>
+            <span style="font-weight:700; font-size:12.5px; color:${state.syncStatus==='error'?'var(--danger)':(state.syncStatus==='ok'?'var(--emerald)':'var(--ink-soft)')};">
+              ${state.syncStatus==='syncing' ? 'Sincronizzazione…' : state.syncStatus==='ok' ? 'Connesso' + (state.syncLast ? ' · ' + state.syncLast.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) : '') : state.syncStatus==='error' ? 'Errore di connessione' : 'Non ancora sincronizzato'}
+            </span>
+          </div>
+          <div class="hint" style="margin-bottom:10px; word-break:break-all;">${escapeHtml(state.syncUrl)}</div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" id="syncNowBtn" style="flex:1;">Sincronizza ora</button>
+            <button class="btn danger" id="syncDisconnectBtn" style="flex:1;">Disconnetti</button>
+          </div>
+        ` : `
+          <div class="hint" style="margin-bottom:10px;">Incolla qui l'URL del tuo Firebase Realtime Database per avere gli stessi dati sempre aggiornati su tutti i dispositivi collegati.</div>
+          <div class="field">
+            <input type="text" id="f-syncUrl" placeholder="https://tuoprogetto-default-rtdb.firebaseio.com">
+          </div>
+          <button class="btn primary" id="syncConnectBtn" style="width:100%;">Collega e sincronizza</button>
+        `}
+      </div>
+
+      <div class="section-title">Backup e trasferimento dati</div>
+      <div class="card">
+        <div class="hint" style="margin-bottom:10px;">I dati sono salvati solo su questo dispositivo. Per portarli su un altro dispositivo o condividerli con un collaboratore, esporta un backup e fallo importare a lui.</div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" id="exportBackupBtn" style="flex:1;">Esporta backup</button>
+          <button class="btn" id="importBackupBtn" style="flex:1;">Importa backup</button>
+        </div>
+        <input type="file" id="backupFile" accept=".json" style="display:none;">
+      </div>
+
+      <div class="card">
+        <div class="hint" style="margin-bottom:10px;">Cancella tutte le transazioni, spese e chiusure salvate su questo dispositivo, per ripartire da un'app completamente vuota.</div>
+        <button class="btn danger" id="resetAllBtn" style="width:100%; border:1px solid var(--danger);">Cancella tutti i dati</button>
+      </div>
+    `;
+  }
+
+  function filteredTx(){
+    let list = [...state.transactions];
+    if(state.txFilter === 'fotocamere') list = list.filter(t=>t.categoria==='Fotocamere');
+    if(state.txFilter === 'altro') list = list.filter(t=>t.categoria==='Altro');
+    if(state.txFilter === 'invenduto') list = list.filter(t=>!t.dataVendita);
+    if(state.txSearch.trim()){
+      const q = state.txSearch.trim().toLowerCase();
+      list = list.filter(t =>
+        (t.denominazione||'').toLowerCase().includes(q) ||
+        (t.fonteAcquisto||'').toLowerCase().includes(q) ||
+        (t.fonteVendita||'').toLowerCase().includes(q)
+      );
+    }
+    return list.sort((a,b)=> (b.dataAcquisto||'').localeCompare(a.dataAcquisto||''));
+  }
+
+  function renderTransactions(){
+    const list = filteredTx();
+    return `
+      <button class="import-btn" id="importBtn">${ICONS.upload} Importa da Excel</button>
+      <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;">
+      <div class="search-wrap">
+        ${ICONS.search}
+        <input type="text" id="txSearch" placeholder="Cerca per nome, fonte acquisto o vendita..." value="${escapeAttr(state.txSearch)}">
+        ${state.txSearch ? `<button class="clear" id="clearSearch">✕</button>` : ''}
+      </div>
+      <div class="filters">
+        ${[['tutte','Tutte'],['fotocamere','Fotocamere'],['altro','Altro'],['invenduto','In giacenza']].map(([k,l])=>
+          `<button data-filter="${k}" class="${state.txFilter===k?'active':''}">${l}</button>`).join('')}
+      </div>
+      ${list.length===0 ? `<div class="empty"><div class="big">🔍</div>Nessun risultato.<br>Prova a modificare la ricerca o i filtri.</div>` :
+        list.map(t=>renderTxItem(t)).join('')}
+    `;
+  }
+
+  function renderTxItem(t){
+    const p = profitto(t);
+    const venduto = !!t.dataVendita;
+    return `
+    <div class="item" data-id="${t.id}" data-kind="tx">
+      <div class="top-row">
+        <div><div class="name">${escapeHtml(t.denominazione || 'Senza nome')}</div></div>
+        <div style="display:flex; gap:6px; flex-direction:column; align-items:flex-end;">
+          <span class="tag ${t.categoria==='Fotocamere'?'fotocamere':'altro'}">${t.categoria}</span>
+          <span class="tag ${venduto?'venduto':'instock'}">${venduto?'Venduto':'In giacenza'}</span>
+        </div>
+      </div>
+      <div class="meta">
+        Acquisto: ${fmtEUR(t.prezzoAcquisto)} · ${fmtDate(t.dataAcquisto)}${t.fonteAcquisto?` · ${escapeHtml(t.fonteAcquisto)}`:''}<br>
+        ${venduto ? `Vendita: ${fmtEUR(t.prezzoVendita)} · ${fmtDate(t.dataVendita)}${t.fonteVendita?` · ${escapeHtml(t.fonteVendita)}`:''}` : 'Non ancora venduto'}
+        ${t.rimanenza ? '<br><span class="hint">📦 Rimanenza iniziale</span>' : ''}
+      </div>
+      ${p ? `<div class="profit ${p.totale<0?'negative':''}">Profitto: ${fmtEUR(p.totale)} totale · ${fmtEUR(p.cadauno)} cadauno</div>` : `<div class="hint" style="margin-top:8px;">In giacenza: il costo d'acquisto ha già ridotto il margine del mese in cui è stato pagato.</div>`}
+      <div class="actions">
+        <button class="btn" data-action="edit-tx" data-id="${t.id}">Modifica</button>
+        <button class="btn danger" data-action="delete-tx" data-id="${t.id}">Elimina</button>
+      </div>
+    </div>`;
+  }
+
+  function renderExpenses(){
+    const list = [...state.expenses]
+      .filter(e => !e.data || new Date(e.data).getFullYear() === state.year)
+      .sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+    const totale = list.reduce((s,e)=>s+(Number(e.importo)||0),0);
+    return `
+      <div class="row" style="margin-bottom:12px;">
+        <div class="section-title" style="margin:0;">Anno</div>
+        <select id="yearSelectExp">
+          ${availableYears().map(y=>`<option value="${y}" ${y===state.year?'selected':''}>${y}</option>`).join('')}
+        </select>
+      </div>
+      <div class="card row">
+        <span class="hint">Totale spese ${state.year}</span>
+        <span style="font-family:'JetBrains Mono';font-weight:700;">${fmtEUR(totale)}</span>
+      </div>
+      ${list.length===0 ? `<div class="empty"><div class="big">🧾</div>Nessuna spesa registrata.<br>Tocca + per aggiungerne una.</div>` :
+        list.map(e=>`
+        <div class="item" data-id="${e.id}" data-kind="expense">
+          <div class="top-row">
+            <div class="name">${e.tipo}</div>
+            <span style="font-family:'JetBrains Mono';font-weight:700;">${fmtEUR(e.importo)}</span>
+          </div>
+          <div class="meta">${fmtDate(e.data)}${e.descrizione?` · ${escapeHtml(e.descrizione)}`:''}</div>
+          <div class="actions">
+            <button class="btn" data-action="edit-exp" data-id="${e.id}">Modifica</button>
+            <button class="btn danger" data-action="delete-exp" data-id="${e.id}">Elimina</button>
+          </div>
+        </div>`).join('')}
+    `;
+  }
+
+  function renderModal(){
+    if(state.modal.type === 'tx') return renderTxModal();
+    if(state.modal.type === 'import-confirm') return renderImportModal();
+    if(state.modal.type === 'backup-confirm') return renderBackupModal();
+    if(state.modal.type === 'confirm') return renderConfirmDeleteModal();
+    if(state.modal.type === 'closure') return renderClosureModal();
+    if(state.modal.type === 'reset-confirm') return renderResetModal();
+    return renderExpModal();
+  }
+
+  function renderResetModal(){
+    return `
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <div class="confirm-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+        </div>
+        <h2>Cancellare tutti i dati?</h2>
+        <div class="hint" style="margin-bottom:6px;">Verranno eliminate tutte le transazioni, le spese e le chiusure mensili salvate su questo dispositivo. L'azione non può essere annullata. Se ti serve, esporta prima un backup.</div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelReset">Annulla</button>
+          <button class="btn danger" style="border:1px solid var(--danger); flex:1;" id="doReset">Cancella tutto</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderClosureModal(){
+    const key = state.modal.key;
+    const monthIdx = Number(key.split('-')[1]);
+    const current = state.chiusure[key];
+    return `
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <h2>Chiusura ${MESI_FULL[monthIdx]} — ${state.year}</h2>
+        <div class="field">
+          <label>Valore dal tuo Excel — colonna F, importo "a testa" (lascia vuoto per usare il calcolo automatico dell'app)</label>
+          <input type="number" step="0.01" id="f-closure" value="${current != null ? current : ''}" placeholder="Es. 1125.91">
+        </div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelClosure">Annulla</button>
+          <button class="btn primary" id="saveClosure">Salva</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderBackupModal(){
+    const p = state.backupPreview;
+    if(!p) return '';
+    return `
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <h2>Importa backup</h2>
+        <div class="import-summary">
+          <div class="line"><span>Transazioni nel file</span><b>${p.transactions.length}</b></div>
+          <div class="line"><span>Spese nel file</span><b>${p.expenses.length}</b></div>
+        </div>
+        <div class="field">
+          <label>Come vuoi importarlo?</label>
+          <div class="segmented">
+            <button type="button" data-backupmode="merge" class="active">Aggiungi ai dati attuali</button>
+            <button type="button" data-backupmode="replace">Sostituisci tutto</button>
+          </div>
+        </div>
+        <div class="hint" style="margin-bottom:6px;">"Sostituisci tutto" cancella i dati presenti su questo dispositivo e li rimpiazza con quelli del backup.</div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelBackup">Annulla</button>
+          <button class="btn primary" id="confirmBackup">Importa</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderConfirmDeleteModal(){
+    const isTx = state.modal.kind === 'tx';
+    const record = isTx
+      ? state.transactions.find(x=>x.id===state.modal.id)
+      : state.expenses.find(x=>x.id===state.modal.id);
+    const label = isTx ? (record ? record.denominazione : 'questa transazione') : (record ? record.tipo + ' · ' + fmtEUR(record.importo) : 'questa spesa');
+    return `
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <div class="confirm-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+        </div>
+        <h2>Eliminare ${isTx?'la transazione':'la spesa'}?</h2>
+        <div class="hint" style="margin-bottom:6px;">${escapeHtml(label)}<br>Questa azione non può essere annullata.</div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelConfirm">Annulla</button>
+          <button class="btn danger" style="border:1px solid var(--danger); flex:1;" id="doDelete">Elimina</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderImportModal(){
+    const p = state.importPreview;
+    if(!p) return '';
+    const nFotocamere = p.transactions.filter(t=>t.categoria==='Fotocamere').length;
+    const nAltro = p.transactions.filter(t=>t.categoria==='Altro').length;
+    return `
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <h2>Conferma importazione</h2>
+        <div class="import-summary">
+          <div class="line"><span>Transazioni Fotocamere</span><b>${nFotocamere}</b></div>
+          <div class="line"><span>Transazioni Altro</span><b>${nAltro}</b></div>
+          <div class="line"><span>Voci di spesa</span><b>${p.expensesRaw.length}</b></div>
+        </div>
+        <div class="field">
+          <label>Anno di riferimento per le spese (i mesi non riportano una data precisa nel file originale)</label>
+          <input type="number" id="f-importYear" value="${p.suggestedYear}">
+        </div>
+        <div class="field">
+          <label>Come vuoi importarlo?</label>
+          <div class="segmented">
+            <button type="button" data-importmode="merge" class="active">Aggiungi ai dati attuali</button>
+            <button type="button" data-importmode="replace">Sostituisci tutto</button>
+          </div>
+        </div>
+        <div class="hint" style="margin-bottom:6px;">"Sostituisci tutto" cancella tutte le transazioni e spese già presenti su questo dispositivo, utile se un'importazione precedente conteneva un errore.</div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelImport">Annulla</button>
+          <button class="btn primary" id="confirmImport">Importa</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderTxModal(){
+    const d = state.modal.data || {categoria:'Fotocamere', denominazione:'', fonteAcquisto:'', prezzoAcquisto:'', dataAcquisto:'', fonteVendita:'', prezzoVendita:'', dataVendita:''};
+    const isEdit = !!d.id;
+    return `
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <h2>${isEdit?'Modifica transazione':'Nuova transazione'}</h2>
+        <div class="field">
+          <label>Categoria</label>
+          <div class="segmented">
+            <button type="button" data-cat="Fotocamere" class="${d.categoria==='Fotocamere'?'active':''}">Fotocamere</button>
+            <button type="button" data-cat="Altro" class="${d.categoria==='Altro'?'active':''}">Altro</button>
+          </div>
+        </div>
+        <div class="field"><label>Denominazione</label><input type="text" id="f-denom" value="${escapeAttr(d.denominazione)}" placeholder="Es. Canon AE-1"></div>
+        <div class="field-row">
+          <div class="field"><label>Prezzo acquisto (€)</label><input type="number" step="0.01" id="f-pa" value="${d.prezzoAcquisto}"></div>
+          <div class="field"><label>Data acquisto</label><input type="date" id="f-da" value="${d.dataAcquisto}"></div>
+        </div>
+        <div class="field"><label>Fonte acquisto</label><input type="text" id="f-fa" value="${escapeAttr(d.fonteAcquisto)}" placeholder="Es. Marketplace, cliente..."></div>
+        <div class="section-title" style="margin-top:16px;">Vendita (lascia vuoto se non ancora venduto)</div>
+        <div class="field-row">
+          <div class="field"><label>Prezzo vendita (€)</label><input type="number" step="0.01" id="f-pv" value="${d.prezzoVendita ?? ''}"></div>
+          <div class="field"><label>Data vendita</label><input type="date" id="f-dv" value="${d.dataVendita || ''}"></div>
+        </div>
+        <div class="field"><label>Fonte vendita</label><input type="text" id="f-fv" value="${escapeAttr(d.fonteVendita)}" placeholder="Es. Marketplace, cliente..."></div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelModal">Annulla</button>
+          <button class="btn primary" id="saveTx">Salva</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderExpModal(){
+    const d = state.modal.data || {tipo:'Imballaggi', importo:'', data:'', descrizione:''};
+    const isEdit = !!d.id;
+    return `
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <h2>${isEdit?'Modifica spesa':'Nuova spesa'}</h2>
+        <div class="field">
+          <label>Tipo</label>
+          <select id="f-tipo">
+            ${TIPI_SPESA.map(t=>`<option value="${t}" ${d.tipo===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Importo (€)</label><input type="number" step="0.01" id="f-importo" value="${d.importo}"></div>
+          <div class="field"><label>Data</label><input type="date" id="f-data" value="${d.data}"></div>
+        </div>
+        <div class="field"><label>Descrizione (opzionale)</label><input type="text" id="f-desc" value="${escapeAttr(d.descrizione)}"></div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelModal">Annulla</button>
+          <button class="btn primary" id="saveExp">Salva</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function escapeAttr(s){ return escapeHtml(s); }
+
+  function attachHandlers(){
+    document.querySelectorAll('[data-tab]').forEach(b=>{
+      b.onclick = ()=>{ state.tab = b.dataset.tab; render(); };
+    });
+    const fab = document.getElementById('fabAdd');
+    if(fab) fab.onclick = ()=>{
+      state.modal = { type: state.tab==='tx' ? 'tx' : 'expense', data: null };
+      render();
+    };
+    const yearSel = document.getElementById('yearSelect') || document.getElementById('yearSelectExp');
+    if(yearSel) yearSel.onchange = e=>{ state.year = Number(e.target.value); render(); };
+
+    document.querySelectorAll('[data-editclosure]').forEach(el=>{
+      el.onclick = ()=>{
+        state.modal = { type:'closure', key: el.dataset.editclosure };
+        render();
+      };
+    });
+    const cancelClosure = document.getElementById('cancelClosure');
+    if(cancelClosure) cancelClosure.onclick = ()=>{ state.modal = null; render(); };
+    const saveClosure = document.getElementById('saveClosure');
+    if(saveClosure) saveClosure.onclick = async ()=>{
+      const val = document.getElementById('f-closure').value;
+      const key = state.modal.key;
+      if(val === ''){ delete state.chiusure[key]; }
+      else{ state.chiusure[key] = Number(val); }
+      await saveChiusure();
+      state.modal = null;
+      render();
+      showToast('Chiusura salvata.');
+    };
+
+    document.querySelectorAll('[data-filter]').forEach(b=>{
+      b.onclick = ()=>{ state.txFilter = b.dataset.filter; render(); };
+    });
+
+    const searchInput = document.getElementById('txSearch');
+    if(searchInput){
+      searchInput.oninput = (e)=>{
+        state.txSearch = e.target.value;
+        const list = filteredTx();
+        const container = document.querySelector('main');
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = list.length===0
+          ? `<div class="empty"><div class="big">🔍</div>Nessun risultato.<br>Prova a modificare la ricerca o i filtri.</div>`
+          : list.map(t=>renderTxItem(t)).join('');
+        const oldItems = container.querySelectorAll('.item, .empty');
+        oldItems.forEach(n=>n.remove());
+        Array.from(wrapper.children).forEach(c=>container.appendChild(c));
+        attachItemHandlers();
+        const cf = document.getElementById('clearSearch');
+        if(!cf && state.txSearch){
+          const btn = document.createElement('button');
+          btn.className='clear'; btn.id='clearSearch'; btn.textContent='✕';
+          btn.onclick = ()=>{ state.txSearch=''; render(); };
+          document.querySelector('.search-wrap').appendChild(btn);
+        } else if(cf && !state.txSearch){
+          cf.remove();
+        }
+      };
+      searchInput.focus();
+      searchInput.selectionStart = searchInput.selectionEnd = searchInput.value.length;
+    }
+    const clearBtn = document.getElementById('clearSearch');
+    if(clearBtn) clearBtn.onclick = ()=>{ state.txSearch=''; render(); };
+
+    attachItemHandlers();
+
+    const cancel = document.getElementById('cancelModal');
+    if(cancel) cancel.onclick = ()=>{ state.modal = null; render(); };
+    const overlay = document.getElementById('overlay');
+    if(overlay) overlay.addEventListener('click', (e)=>{ if(e.target === overlay){ state.modal = null; state.importPreview = null; state.backupPreview = null; render(); } });
+
+    const cancelConfirm = document.getElementById('cancelConfirm');
+    if(cancelConfirm) cancelConfirm.onclick = ()=>{ state.modal = null; render(); };
+    const doDelete = document.getElementById('doDelete');
+    if(doDelete) doDelete.onclick = async ()=>{
+      if(state.modal.kind === 'tx'){
+        state.transactions = state.transactions.filter(x=>x.id!==state.modal.id);
+        await saveTransactions();
+      }else{
+        state.expenses = state.expenses.filter(x=>x.id!==state.modal.id);
+        await saveExpenses();
+      }
+      state.modal = null;
+      render();
+      showToast('Eliminato.');
+    };
+
+    const importBtn = document.getElementById('importBtn');
+    const importFile = document.getElementById('importFile');
+    if(importBtn && importFile){
+      importBtn.onclick = ()=> importFile.click();
+      importFile.onchange = (e)=>{ if(e.target.files[0]) handleFile(e.target.files[0]); };
+    }
+    const exportBackupBtn = document.getElementById('exportBackupBtn');
+    if(exportBackupBtn) exportBackupBtn.onclick = exportBackup;
+    const syncConnectBtn = document.getElementById('syncConnectBtn');
+    if(syncConnectBtn) syncConnectBtn.onclick = async ()=>{
+      const val = normalizeSyncUrl(document.getElementById('f-syncUrl').value);
+      if(!val){ showToast('Inserisci un indirizzo valido.'); return; }
+      state.syncUrl = val;
+      try{ localStorage.setItem(LS_SYNC, val); }catch(e){}
+      render();
+      const ok = await syncPull(false);
+      if(ok) showToast('Collegato al database. I dati verranno sincronizzati automaticamente.');
+    };
+    const syncNowBtn = document.getElementById('syncNowBtn');
+    if(syncNowBtn) syncNowBtn.onclick = ()=> syncPull(false);
+    const syncDisconnectBtn = document.getElementById('syncDisconnectBtn');
+    if(syncDisconnectBtn) syncDisconnectBtn.onclick = ()=>{
+      state.syncUrl = '';
+      state.syncStatus = 'idle';
+      try{ localStorage.removeItem(LS_SYNC); }catch(e){}
+      render();
+      showToast('Sincronizzazione disattivata su questo dispositivo. I dati restano salvati in locale.');
+    };
+    const resetAllBtn = document.getElementById('resetAllBtn');
+    if(resetAllBtn) resetAllBtn.onclick = ()=>{ state.modal = { type:'reset-confirm' }; render(); };
+    const cancelReset = document.getElementById('cancelReset');
+    if(cancelReset) cancelReset.onclick = ()=>{ state.modal = null; render(); };
+    const doReset = document.getElementById('doReset');
+    if(doReset) doReset.onclick = async ()=>{
+      state.transactions = [];
+      state.expenses = [];
+      state.chiusure = {};
+      await saveTransactions();
+      await saveExpenses();
+      await saveChiusure();
+      state.modal = null;
+      render();
+      showToast('Tutti i dati sono stati cancellati.');
+    };
+    const importBackupBtn = document.getElementById('importBackupBtn');
+    const backupFile = document.getElementById('backupFile');
+    if(importBackupBtn && backupFile){
+      importBackupBtn.onclick = ()=> backupFile.click();
+      backupFile.onchange = (e)=>{ if(e.target.files[0]) handleBackupFile(e.target.files[0]); };
+    }
+    let backupMode = 'merge';
+    document.querySelectorAll('[data-backupmode]').forEach(b=>{
+      b.onclick = ()=>{
+        backupMode = b.dataset.backupmode;
+        document.querySelectorAll('[data-backupmode]').forEach(x=>x.classList.toggle('active', x===b));
+      };
+    });
+    const cancelBackup = document.getElementById('cancelBackup');
+    if(cancelBackup) cancelBackup.onclick = ()=>{ state.modal = null; state.backupPreview = null; render(); };
+    const confirmBackup = document.getElementById('confirmBackup');
+    if(confirmBackup) confirmBackup.onclick = async ()=>{
+      const p = state.backupPreview;
+      if(backupMode === 'replace'){
+        state.transactions = p.transactions;
+        state.expenses = p.expenses;
+      }else{
+        state.transactions.push(...p.transactions);
+        state.expenses.push(...p.expenses);
+      }
+      await saveTransactions();
+      await saveExpenses();
+      state.modal = null;
+      state.backupPreview = null;
+      render();
+      showToast('Backup importato.');
+    };
+    const cancelImport = document.getElementById('cancelImport');
+    if(cancelImport) cancelImport.onclick = ()=>{ state.modal = null; state.importPreview = null; render(); };
+    let importMode = 'merge';
+    document.querySelectorAll('[data-importmode]').forEach(b=>{
+      b.onclick = ()=>{
+        importMode = b.dataset.importmode;
+        document.querySelectorAll('[data-importmode]').forEach(x=>x.classList.toggle('active', x===b));
+      };
+    });
+    const confirmImport = document.getElementById('confirmImport');
+    if(confirmImport) confirmImport.onclick = async ()=>{
+      const year = Number(document.getElementById('f-importYear').value) || new Date().getFullYear();
+      const p = state.importPreview;
+      const newExpenses = finalizeExpenses(p.expensesRaw, year);
+      if(importMode === 'replace'){
+        state.transactions = p.transactions;
+        state.expenses = newExpenses;
+      }else{
+        state.transactions.push(...p.transactions);
+        state.expenses.push(...newExpenses);
+      }
+      await saveTransactions();
+      await saveExpenses();
+      state.modal = null;
+      state.importPreview = null;
+      render();
+      showToast('Importazione completata: ' + p.transactions.length + ' transazioni e ' + p.expensesRaw.length + ' spese.');
+    };
+
+    document.querySelectorAll('[data-cat]').forEach(b=>{
+      b.onclick = ()=>{
+        state.modal.data = state.modal.data || {};
+        state.modal.data.categoria = b.dataset.cat;
+        render();
+      };
+    });
+
+    const saveTxBtn = document.getElementById('saveTx');
+    if(saveTxBtn) saveTxBtn.onclick = async ()=>{
+      const denom = document.getElementById('f-denom').value.trim();
+      if(!denom){ showToast('Inserisci una denominazione.'); return; }
+      const pa = document.getElementById('f-pa').value;
+      if(pa === ''){ showToast('Inserisci il prezzo di acquisto.'); return; }
+      const existing = state.modal.data && state.modal.data.id;
+      const record = {
+        id: existing || uid(),
+        categoria: (state.modal.data && state.modal.data.categoria) || 'Fotocamere',
+        denominazione: denom,
+        fonteAcquisto: document.getElementById('f-fa').value.trim(),
+        prezzoAcquisto: Number(pa),
+        dataAcquisto: document.getElementById('f-da').value,
+        fonteVendita: document.getElementById('f-fv').value.trim(),
+        prezzoVendita: document.getElementById('f-pv').value === '' ? null : Number(document.getElementById('f-pv').value),
+        dataVendita: document.getElementById('f-dv').value || null
+      };
+      if(existing){ state.transactions = state.transactions.map(t=>t.id===existing?record:t); }
+      else{ state.transactions.push(record); }
+      await saveTransactions();
+      state.modal = null;
+      render();
+    };
+
+    const saveExpBtn = document.getElementById('saveExp');
+    if(saveExpBtn) saveExpBtn.onclick = async ()=>{
+      const importo = document.getElementById('f-importo').value;
+      const data = document.getElementById('f-data').value;
+      if(importo === '' || !data){ showToast('Inserisci importo e data.'); return; }
+      const existing = state.modal.data && state.modal.data.id;
+      const record = {
+        id: existing || uid(),
+        tipo: document.getElementById('f-tipo').value,
+        importo: Number(importo),
+        data,
+        descrizione: document.getElementById('f-desc').value.trim()
+      };
+      if(existing){ state.expenses = state.expenses.map(e=>e.id===existing?record:e); }
+      else{ state.expenses.push(record); }
+      await saveExpenses();
+      state.modal = null;
+      render();
+    };
+  }
+
+  function attachItemHandlers(){
+    document.querySelectorAll('[data-action="edit-tx"]').forEach(b=>{
+      b.onclick = ()=>{
+        const t = state.transactions.find(x=>x.id===b.dataset.id);
+        state.modal = { type:'tx', data: {...t} };
+        render();
+      };
+    });
+    document.querySelectorAll('[data-action="delete-tx"]').forEach(b=>{
+      b.onclick = ()=>{
+        state.modal = { type:'confirm', kind:'tx', id: b.dataset.id };
+        render();
+      };
+    });
+    document.querySelectorAll('[data-action="edit-exp"]').forEach(b=>{
+      b.onclick = ()=>{
+        const e = state.expenses.find(x=>x.id===b.dataset.id);
+        state.modal = { type:'expense', data: {...e} };
+        render();
+      };
+    });
+    document.querySelectorAll('[data-action="delete-exp"]').forEach(b=>{
+      b.onclick = ()=>{
+        state.modal = { type:'confirm', kind:'exp', id: b.dataset.id };
+        render();
+      };
+    });
+  }
+
+  loadAll();
+})();
+</script>
+</body>
+</html>
